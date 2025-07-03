@@ -6,98 +6,75 @@
     <title>مستكشف القرآن التفاعلي</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="themes.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Material+Icons&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
 </head>
 <body class="theme-classic">
 
-    <div id="loading-indicator"></div>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>جاري تحميل بيانات القرآن الكريم...</p>
+    </div>
 
     <div id="app-container">
-        <header>
-            <h1><span class="material-icons">menu_book</span> مستكشف القرآن</h1>
-            <div class="header-controls">
-                <div id="theme-selector">
-                    <label for="theme-dropdown">المظهر:</label>
-                    <select id="theme-dropdown">
-                        <option value="theme-classic">كلاسيكي</option>
-                        <option value="theme-kids">أطفال</option>
-                        <option value="theme-dark">ليلي</option>
-                        <option value="theme-mint">نعناع</option>
-                        <option value="theme-forest">غابة</option>
-                    </select>
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h2>الفهرس</h2>
+                <div id="view-switcher">
+                    <button id="mushaf-view-btn" class="view-btn active" aria-label="عرض المصحف">
+                        <span class="material-icons">auto_stories</span>
+                        <span>المصحف</span>
+                    </button>
+                    <button id="surah-view-btn" class="view-btn" aria-label="عرض السور">
+                        <span class="material-icons">list_alt</span>
+                        <span>السور</span>
+                    </button>
                 </div>
             </div>
-            <button id="sidebar-toggle-btn" aria-label="إظهار القائمة"><span class="material-icons">menu</span></button>
-        </header>
-
-        <div id="sidebar-overlay"></div>
-
-        <main id="explorer-view" class="view active">
-            <aside id="sidebar">
-                <div class="sidebar-content">
-                    <h2>الفهرس</h2>
-                    <div id="quran-index"></div>
-                    <nav id="content-nav">
-                         <button class="nav-btn active" data-section="read"><span class="material-icons">chrome_reader_mode</span> تصفح المصحف</button>
-                        <button class="nav-btn" data-section="surah-list"><span class="material-icons">list</span> عرض السور</button>
-                        <button class="nav-btn" data-section="search"><span class="material-icons">search</span> البحث</button>
-                    </nav>
+            
+            <div id="sidebar-content">
+                <div id="mushaf-controls-sidebar" class="sidebar-view active">
+                    <label for="page-input">انتقل إلى صفحة:</label>
+                    <input type="number" id="page-input" min="1" max="604" placeholder="رقم الصفحة...">
+                    <div id="surah-index-mushaf"></div>
                 </div>
-            </aside>
 
-            <div id="content-area">
-                <section id="read-section" class="content-section active">
-                    <div id="mushaf-container">
-                        <div id="mushaf-page-right" class="mushaf-page"></div>
-                        <div id="mushaf-page-left" class="mushaf-page"></div>
+                <div id="surah-controls-sidebar" class="sidebar-view">
+                    <label for="surah-select">اختر سورة:</label>
+                    <select id="surah-select"></select>
+                    <div id="verse-range-selector">
+                        <label for="verse-start">من آية:</label>
+                        <input type="number" id="verse-start" min="1">
+                        <label for="verse-end">إلى آية:</label>
+                        <input type="number" id="verse-end" min="1">
                     </div>
-                    <div id="mushaf-controls">
-                        <button id="next-page-btn" aria-label="الصفحة التالية"><span class="material-icons">arrow_back_ios</span></button>
-                        <div class="page-info">
-                            <span id="surah-name-display"></span>
-                            <span id="page-number-display"></span>
-                        </div>
-                        <button id="prev-page-btn" aria-label="الصفحة السابقة"><span class="material-icons">arrow_forward_ios</span></button>
-                    </div>
-                     <div id="audio-player-container">
-                        <div id="current-verse-display"></div>
-                        <audio id="audio-player" controls></audio>
-                        <div class="reciter-selection">
-                            <label for="reciter-select">اختر القارئ:</label>
-                            <select id="reciter-select">
-                                <option value="ar.alafasy">مشاري العفاسي</option>
-                                <option value="ar.abdulbasitmurattal">عبد الباسط عبد الصمد</option>
-                                <option value="ar.minshawi">محمد صديق المنشاوي</option>
-                                <option value="ar.husary">محمود خليل الحصري</option>
-                                <option value="ar.ahmedajamy">أحمد العجمي</option>
-                            </select>
-                        </div>
-                    </div>
-                </section>
+                    <button id="view-surah-btn">عرض الآيات</button>
+                </div>
+            </div>
+        </aside>
 
-                <section id="surah-list-section" class="content-section">
-                     <h3 id="surah-list-title" class="section-title"></h3>
-                     <div id="surah-list-container"></div>
-                </section>
+        <main id="content-area">
+            <div id="mushaf-view" class="main-view active">
+                <div id="mushaf-container">
+                    <div id="mushaf-page-right" class="mushaf-page"></div>
+                    <div id="mushaf-page-left" class="mushaf-page"></div>
+                </div>
+                <div id="mushaf-navigation">
+                    <button id="next-page-btn" aria-label="الصفحة التالية"><span class="material-icons">arrow_forward_ios</span></button>
+                    <div id="page-info-display"></div>
+                    <button id="prev-page-btn" aria-label="الصفحة السابقة"><span class="material-icons">arrow_back_ios</span></button>
+                </div>
+            </div>
 
-                <section id="search-section" class="content-section">
-                    <h3 class="section-title">البحث في القرآن الكريم</h3>
-                    <div id="search-input-container">
-                        <input type="text" id="search-input" placeholder="ابحث عن كلمة أو آية...">
-                        <button id="search-btn"><span class="material-icons">search</span></button>
-                    </div>
-                    <div id="search-results-container"></div>
-                </section>
+            <div id="surah-view" class="main-view">
+                <h2 id="surah-view-title"></h2>
+                <div id="surah-view-container"></div>
             </div>
         </main>
-        <button id="scroll-top-btn" class="btn-scroll-top" aria-label="العودة للأعلى"><span class="material-icons">arrow_upward</span></button>
     </div>
 
     <script src="./quran_data/surah_index.js"></script>
-
+    <script src="page_map.js"></script> 
     <script src="app.js" defer></script>
 </body>
 </html>
