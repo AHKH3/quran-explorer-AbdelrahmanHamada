@@ -6,7 +6,6 @@
     --border-radius-inner: 8px;
     --shadow-light: 0 2px 8px rgba(0,0,0,0.06);
     --shadow-medium: 0 4px 16px rgba(0,0,0,0.1);
-    --transition-speed: 0.3s;
 }
 
 *, *::before, *::after {
@@ -55,21 +54,7 @@ header h1 {
     align-items: center;
     gap: 1rem;
 }
-.header-controls button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-color);
-    padding: 0.5rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-.header-controls button:hover {
-    background-color: var(--bg-color);
-}
+
 main#explorer-view {
     display: grid;
     grid-template-columns: 280px 1fr;
@@ -286,7 +271,7 @@ main#explorer-view {
     min-width: 200px;
 }
 
-/* --- Sidebar Navigation --- */
+/* Sidebar Navigation */
 #content-nav {
     display: flex;
     flex-direction: column;
@@ -321,7 +306,7 @@ main#explorer-view {
     box-shadow: var(--shadow-light);
 }
 
-/* --- Search --- */
+/* Search */
 #search-input-container {
     display: flex;
     gap: 10px;
@@ -357,29 +342,10 @@ main#explorer-view {
     font-size: 0.9rem;
     color: var(--primary-color);
 }
-.result-item .highlight {
+#search-results-container mark {
     background-color: var(--secondary-color-light);
-    font-weight: bold;
-}
-
-
-/* --- Tafsir & Surah List --- */
-.tafsir-item, #surah-list-container {
-    margin-bottom: 1.5rem;
-    padding: 1.5rem;
-    background-color: var(--surface-color);
-    border-radius: var(--border-radius-main);
-    box-shadow: var(--shadow-light);
-}
-#surah-list-container {
-     font-family: var(--font-quran);
-     line-height: 2.4;
-     font-size: 1.5rem;
-}
-.tafsir-item h4 {
-    margin-top: 0;
-    font-size: 1.2rem;
-    color: var(--primary-color);
+    padding: 0 3px;
+    border-radius: 3px;
 }
 
 /* Animations & Responsive */

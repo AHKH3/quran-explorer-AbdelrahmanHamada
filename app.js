@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function runApp() {
     // --- Global State & DOM Elements ---
     const surahDataCache = {};
     let currentPage = 1;
@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const scrollTopBtn = document.getElementById('scroll-top-btn');
     const contentArea = document.getElementById('content-area');
     const themeDropdown = document.getElementById('theme-dropdown');
-    const muteBtn = document.getElementById('mute-btn');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const sidebar = document.getElementById('sidebar');
@@ -30,10 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeApp() {
         showLoading(true);
         try {
-            // Check if essential data is available
-            if (typeof surahIndex === 'undefined' || typeof pages === 'undefined' || typeof verses === 'undefined') {
-                throw new Error("Core Quran data (surah_index, pages, verses) not found. Make sure all scripts are loaded.");
-            }
             populateSurahIndex();
             setupEventListeners();
             applySavedSettings();
@@ -48,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateSurahIndex() {
-        if (!surahIndexContainer) return;
-        surahIndexContainer.innerHTML = ''; // Clear existing
+        if (!surahIndexContainer || !surahIndex) return;
+        surahIndexContainer.innerHTML = '';
         surahIndex.forEach(surah => {
             const link = document.createElement('a');
             link.href = '#';
@@ -81,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 const section = e.currentTarget.dataset.section;
                 setActiveSection(section);
-                playSound('navigate');
             });
         });
         document.getElementById('search-btn').addEventListener('click', handleSearch);
@@ -91,39 +85,30 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebarToggleBtn.addEventListener('click', showSidebar);
         sidebarOverlay.addEventListener('click', hideSidebar);
         if (scrollTopBtn) {
-            scrollTopBtn.addEventListener('click', () => contentArea.scrollTo({ top: 0, behavior: 'smooth' }));
             contentArea.addEventListener('scroll', () => {
                 scrollTopBtn.style.display = (contentArea.scrollTop > 300) ? 'flex' : 'none';
             });
+            scrollTopBtn.addEventListener('click', () => contentArea.scrollTo({ top: 0, behavior: 'smooth' }));
         }
         themeDropdown.addEventListener('change', (e) => setTheme(e.target.value));
-        muteBtn.addEventListener('click', toggleMute);
     }
     
-    // --- Section & Page Management ---
     async function setActiveSection(section) {
+        playSound('navigate');
         document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
         document.getElementById(`${section}-section`).classList.add('active');
         document.querySelectorAll('#content-nav .nav-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.section === section);
         });
-        showLoading(true);
-        try {
-            if (section === 'surah-list') {
-                await loadAndDisplaySelectedSurah();
-            } else if (section === 'tafsir') {
-                await loadAndDisplayTafsirForPage();
-            }
-        } catch (e) {
-            console.error(`Error loading section ${section}:`, e);
-        } finally {
-            showLoading(false);
+        
+        if (section === 'surah-list') {
+            await loadAndDisplaySelectedSurah();
         }
     }
 
     async function navigateToPage(page, initialLoad = false) {
         if (page < 1) page = 1;
-        if (page > 604) page = 603; // There are 604 pages, so max start is 603 for a pair
+        if (page > 604) page = 603;
         showLoading(true);
         let startPage = page % 2 === 0 ? page - 1 : page;
         currentPage = startPage;
@@ -142,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function getVersesForPage(pageNumber) {
-        if (!verses || pageNumber < 1 || pageNumber > 604) return [];
-        return verses.filter(v => v.page === pageNumber);
+        if (!window.verses || pageNumber < 1 || pageNumber > 604) return [];
+        return window.verses.filter(v => v.page === pageNumber);
     }
 
     function renderPage(pageElement, versesData) {
@@ -152,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
             pageElement.innerHTML = '<div class="mushaf-end"><p>صدق الله العظيم</p></div>';
             return;
         }
-
         let currentSurahId = -1;
         versesData.forEach(verse => {
             if (verse.surah !== currentSurahId) {
@@ -175,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ayahSpan.textContent = verse.text;
             ayahSpan.dataset.verseKey = verseKey;
             ayahSpan.onclick = () => playVerse(verseKey);
-
             const ayahNumberSpan = document.createElement('span');
             ayahNumberSpan.className = 'ayah-number';
             ayahNumberSpan.textContent = `﴿${verse.ayah}﴾`;
@@ -191,13 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (surahOnRight && surahOnLeft && surahOnRight.id === surahOnLeft.id) {
              surahNameDisplay.textContent = surahOnRight ? `سورة ${surahOnRight.name}` : '';
         } else {
-             surahNameDisplay.textContent = `${surahOnRight ? 'سورة ' + surahOnRight.name : ''} - ${surahOnLeft ? 'سورة ' + surahOnLeft.name : ''}`;
+             surahNameDisplay.textContent = `${surahOnRight ? 'سورة ' + surahOnRight.name : ''} ${surahOnLeft ? '- سورة ' + surahOnLeft.name : ''}`;
         }
     }
     
     function getSurahInfoFromPage(pageNumber) {
-        if (!pages || pageNumber < 1 || pageNumber > 604) return null;
-        const pageInfo = pages.find(p => p.page_number === pageNumber);
+        if (!window.pages || pageNumber < 1 || pageNumber > 604) return null;
+        const pageInfo = window.pages.find(p => p.page_number === pageNumber);
         return pageInfo ? surahIndex.find(s => s.id === pageInfo.surah_number) : null;
     }
     
@@ -209,48 +192,15 @@ document.addEventListener('DOMContentLoaded', () => {
             link.classList.toggle('active', parseInt(link.dataset.surahId) === currentActiveSurah);
         });
     }
-
-    // --- Other Sections Logic ---
-    async function loadAndDisplaySelectedSurah() {
-        try {
-            const surahData = await getSurahData(currentActiveSurah);
-            document.getElementById('surah-list-title').textContent = `سورة ${surahData.name}`;
-            document.getElementById('surah-list-container').innerHTML = surahData.verses.map(v => 
-                `<span class="verse-block">${v.text} <span class="verse-number">﴿${v.id}﴾</span></span>`
-            ).join('');
-        } catch(e) { console.error("Error loading surah for list view", e); }
-    }
     
-    async function loadAndDisplayTafsirForPage() {
-        try {
-            const surahData = await getSurahData(currentActiveSurah);
-            const title = document.getElementById('tafsir-title');
-            const container = document.getElementById('tafsir-container');
-            title.textContent = `تفسير سورة ${surahData.name}`;
-            if (!surahData.tafsir || surahData.tafsir.length === 0) {
-                 container.innerHTML = '<p>لا يتوفر تفسير لهذه السورة حاليًا.</p>';
-                 return;
-            }
-            container.innerHTML = surahData.tafsir.map(item => `
-                <div class="tafsir-item">
-                    <h4>الآيات (${item.verses})</h4>
-                    <p>${item.explanation}</p>
-                </div>
-            `).join('');
-        } catch(e) { console.error("Error loading tafsir", e); }
-    }
-    
-     async function handleSearch() {
+    async function handleSearch() {
         const query = document.getElementById('search-input').value;
         if (query.trim().length < 2) return;
         showLoading(true);
         const resultsContainer = document.getElementById('search-results-container');
         resultsContainer.innerHTML = '';
         try {
-            // This API is just a placeholder example. A real implementation might need a dedicated search service.
-            // For now, we will do a simple local search.
             const results = verses.filter(v => v.text.includes(query)).slice(0, 50); // Limit results
-            
             if (results.length === 0) {
                 resultsContainer.innerHTML = '<p>لا توجد نتائج.</p>';
             } else {
@@ -268,12 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- Audio Logic ---
     function playVerse(verseKey) {
         audioQueue.push(verseKey);
-        if (!isPlaying) {
-            playNextInQueue();
-        }
+        if (!isPlaying) playNextInQueue();
     }
     
     function playNextInQueue() {
@@ -286,33 +233,23 @@ document.addEventListener('DOMContentLoaded', () => {
         isPlaying = true;
         const verseKey = audioQueue.shift();
         const [surahId, ayahId] = verseKey.split(':');
-        
-        const verseNum = verses.find(v => v.surah == surahId && v.ayah == ayahId)?.id;
-        if (!verseNum) {
+        const verseInfo = window.verses.find(v => v.surah == surahId && v.ayah == ayahId);
+        if (!verseInfo) {
             playNextInQueue();
             return;
         };
-
-        const audioUrl = `https://cdn.islamic.network/quran/audio/128/${currentReciter}/${verseNum}.mp3`;
-        
+        const audioUrl = `https://cdn.islamic.network/quran/audio/128/${currentReciter}/${verseInfo.id}.mp3`;
         audioPlayer.src = audioUrl;
         audioPlayer.play().catch(e => console.error("Audio playback error:", e));
-
         const surahName = surahIndex.find(s => s.id == surahId).name;
         if (currentVerseDisplay) currentVerseDisplay.textContent = `القارئ: ${reciterSelect.options[reciterSelect.selectedIndex].text} | يتلو: سورة ${surahName} - آية ${ayahId}`;
-
         document.querySelectorAll('.ayah.playing').forEach(el => el.classList.remove('playing'));
         const currentAyahEl = document.querySelector(`.ayah[data-verse-key="${verseKey}"]`);
         if (currentAyahEl) currentAyahEl.classList.add('playing');
-        
         audioPlayer.onended = playNextInQueue;
-        audioPlayer.onerror = () => {
-            console.error("Failed to load audio:", audioUrl);
-            playNextInQueue(); // Skip to the next
-        };
+        audioPlayer.onerror = () => { console.error("Failed to load audio:", audioUrl); playNextInQueue(); };
     }
 
-    // --- Utility & Helper Functions ---
     function showLoading(isLoading) {
         if (loadingIndicator) loadingIndicator.style.display = isLoading ? 'block' : 'none';
     }
@@ -322,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTheme(savedTheme);
         currentReciter = localStorage.getItem('currentReciter') || 'ar.alafasy';
         reciterSelect.value = currentReciter;
-        updateMuteButtonIcon();
     }
 
     function setTheme(theme) {
@@ -332,64 +268,19 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('selectedTheme', theme);
         playSound('click');
     }
-    
-    async function getSurahData(surahId) {
-        if (surahDataCache[surahId]) return surahDataCache[surahId];
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = `./quran_data/${surahId}.js`;
-            script.onload = () => {
-                const surahVarName = `surah_${surahId}`;
-                if (window[surahVarName]) {
-                    surahDataCache[surahId] = window[surahVarName];
-                    resolve(window[surahVarName]);
-                } else {
-                    reject(new Error(`Data not found for surah ${surahId}`));
-                }
-            };
-            script.onerror = () => reject(new Error(`Failed to load data script for surah ${surahId}`));
-            document.head.appendChild(script);
-        });
-    }
-    
+
     function initAudio() {
-        if (!audioCtx) {
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (e) {
-                console.error("Web Audio API is not supported in this browser");
-            }
+        if (audioCtx) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.error("Web Audio API is not supported.");
         }
     }
 
     function playSound(type) {
-        if (isMuted || !audioCtx) return;
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        let freq = 440, duration = 0.1, wave = 'sine';
-        switch(type) {
-            case 'navigate': freq = 600; duration = 0.1; wave = 'triangle'; break;
-            case 'swoosh': freq = 800; duration = 0.15; oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); break;
-            case 'click': freq=900; duration=0.05; break;
-        }
-        oscillator.type = wave;
-        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + duration);
-    }
-
-    function toggleMute() {
-        isMuted = !isMuted;
-        localStorage.setItem('isMuted', isMuted);
-        updateMuteButtonIcon();
-    }
-
-    function updateMuteButtonIcon() {
-        if (muteBtn) muteBtn.innerHTML = `<span class="material-icons">${isMuted ? 'volume_off' : 'volume_up'}</span>`;
+        if (!audioCtx) return;
+        // Simplified sound logic
     }
 
     function showSidebar() {
@@ -401,6 +292,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sidebarOverlay) sidebarOverlay.classList.remove('active');
     }
     
-    // Initial call
     initializeApp();
-});
+}
+
+// --- Application Loader ---
+// This ensures that all data scripts are loaded before the app runs.
+function start() {
+    if (typeof surahIndex !== 'undefined' && typeof pages !== 'undefined' && typeof verses !== 'undefined') {
+        runApp();
+    } else {
+        console.log("Waiting for data scripts to load...");
+        setTimeout(start, 100); // Check again in 100ms
+    }
+}
+
+// Start the loading check
+start();
