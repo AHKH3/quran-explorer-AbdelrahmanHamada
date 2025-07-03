@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مستكشف القرآن التفاعلي</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="themes.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Material+Icons&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
 </head>
-<body>
+<body class="theme-classic">
 
     <div id="loading-overlay">
         <div class="spinner"></div>
@@ -18,23 +19,37 @@
     <div id="app-container">
         <aside id="sidebar">
             <div class="sidebar-header">
-                <h2>الفهرس والتنقل</h2>
-                <div id="view-switcher">
-                    <button id="mushaf-view-btn" class="view-btn active" aria-label="عرض المصحف">
-                        <span class="material-icons">auto_stories</span>
-                        <span>المصحف</span>
-                    </button>
-                    <button id="surah-view-btn" class="view-btn" aria-label="عرض السور">
-                        <span class="material-icons">list_alt</span>
-                        <span>السور</span>
-                    </button>
+                <h2>القرآن التفاعلي</h2>
+                <div id="theme-selector">
+                    <label for="theme-dropdown" class="material-icons">palette</label>
+                    <select id="theme-dropdown">
+                        <option value="theme-classic">كلاسيكي</option>
+                        <option value="theme-kids">أطفال</option>
+                        <option value="theme-dark">ليلي</option>
+                    </select>
                 </div>
+            </div>
+
+            <div id="view-switcher">
+                <button id="mushaf-view-btn" class="view-btn active" aria-label="عرض المصحف">
+                    <span class="material-icons">auto_stories</span>
+                    <span>تصفح المصحف</span>
+                </button>
+                <button id="surah-view-btn" class="view-btn" aria-label="عرض السور">
+                    <span class="material-icons">list_alt</span>
+                    <span>عرض مخصص</span>
+                </button>
+                <button id="games-view-btn" class="view-btn" aria-label="الألعاب">
+                    <span class="material-icons">sports_esports</span>
+                    <span>ألعاب</span>
+                </button>
             </div>
             
             <div id="sidebar-content">
                 <div id="mushaf-controls-sidebar" class="sidebar-view active">
-                    <label for="page-input">الانتقال إلى صفحة:</label>
+                    <label for="page-input">انتقال إلى صفحة:</label>
                     <input type="number" id="page-input" min="1" max="604" placeholder="1-604">
+                    <label>فهرس السور:</label>
                     <div id="surah-index-mushaf" class="surah-index-list"></div>
                 </div>
 
@@ -53,6 +68,10 @@
                     </div>
                     <button id="view-surah-btn" class="action-btn">عرض الآيات</button>
                 </div>
+
+                <div id="games-controls-sidebar" class="sidebar-view">
+                    <p>اختر سورة ونطاق آيات من "العرض المخصص" ثم عد إلى هنا لبدء الألعاب.</p>
+                </div>
             </div>
         </aside>
 
@@ -67,15 +86,21 @@
                     <div id="mushaf-page-left" class="mushaf-page"></div>
                 </div>
                 <div id="mushaf-navigation">
-                    <button id="next-page-btn" aria-label="الصفحة التالية"><span class="material-icons">arrow_forward_ios</span></button>
+                    <button id="next-page-btn" aria-label="الصفحة التالية"><span class="material-icons">arrow_back_ios</span></button>
                     <div id="page-info-display"></div>
-                    <button id="prev-page-btn" aria-label="الصفحة السابقة"><span class="material-icons">arrow_back_ios</span></button>
+                    <button id="prev-page-btn" aria-label="الصفحة السابقة"><span class="material-icons">arrow_forward_ios</span></button>
                 </div>
             </div>
 
             <div id="surah-view" class="main-view">
                 <h2 id="surah-view-title"></h2>
                 <div id="surah-view-container" class="quran-text-container"></div>
+            </div>
+
+            <div id="games-view" class="main-view">
+                <h2 id="games-title">الألعاب التفاعلية</h2>
+                <div id="game-selector"></div>
+                <div id="game-content-area"></div>
             </div>
         </main>
         

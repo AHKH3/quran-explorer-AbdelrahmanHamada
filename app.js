@@ -9,13 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     
-    const mushafViewBtn = document.getElementById('mushaf-view-btn');
-    const surahViewBtn = document.getElementById('surah-view-btn');
-    const mushafView = document.getElementById('mushaf-view');
-    const surahView = document.getElementById('surah-view');
-    const mushafControls = document.getElementById('mushaf-controls-sidebar');
-    const surahControls = document.getElementById('surah-controls-sidebar');
+    // View Switcher Elements
+    const viewSwitcherBtns = document.querySelectorAll('.view-btn');
+    const mainViews = document.querySelectorAll('.main-view');
+    const sidebarViews = document.querySelectorAll('.sidebar-view');
 
+    // Mushaf Elements
     const mushafRightPage = document.getElementById('mushaf-page-right');
     const mushafLeftPage = document.getElementById('mushaf-page-left');
     const pageInput = document.getElementById('page-input');
@@ -24,12 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('next-page-btn');
     const prevPageBtn = document.getElementById('prev-page-btn');
     
+    // Surah View Elements
     const surahSelect = document.getElementById('surah-select');
     const verseStartInput = document.getElementById('verse-start');
     const verseEndInput = document.getElementById('verse-end');
     const viewSurahBtn = document.getElementById('view-surah-btn');
     const surahViewTitle = document.getElementById('surah-view-title');
     const surahViewContainer = document.getElementById('surah-view-container');
+    
+    // Games View Elements
+    const gamesView = document.getElementById('games-view');
+    const gameSelectorContainer = document.getElementById('game-selector');
+    const gameContentArea = document.getElementById('game-content-area');
+
 
     // --- Core Functions ---
     async function initializeApp() {
@@ -45,6 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const savedPage = parseInt(localStorage.getItem('currentPage')) || 1;
             navigateToPage(savedPage);
+            
+            document.getElementById('theme-dropdown').value = localStorage.getItem('selectedTheme') || 'theme-classic';
 
         } catch (error) {
             console.error("فشل التهيئة:", error);
@@ -54,15 +62,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Data Loading ---
-    function getSurahData(surahId) {
+    async function getSurahData(surahId) {
         if (surahDataCache[surahId]) return Promise.resolve(surahDataCache[surahId]);
+        
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = `./quran_data/${surahId}.js`;
             script.onload = () => {
                 const surahVarName = `surah_${surahId}`;
                 if (window[surahVarName]) {
+                    // Add surah info to the data object
+                    const info = surahIndex.find(s => s.id === surahId) || {};
+                    window[surahVarName].revelation_place = info.revelation_place;
+                    window[surahVarName].revelation_order = info.revelation_order;
                     surahDataCache[surahId] = window[surahVarName];
                     resolve(window[surahVarName]);
                 } else {
@@ -95,12 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     function setupEventListeners() {
-        mushafViewBtn.addEventListener('click', () => switchView('mushaf'));
-        surahViewBtn.addEventListener('click', () => switchView('surah'));
+        viewSwitcherBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchView(btn.id.replace('-view-btn', '')));
+        });
 
         pageInput.addEventListener('change', () => navigateToPage(parseInt(pageInput.value)));
-        nextPageBtn.addEventListener('click', () => navigateToPage(currentPage + (isSinglePageMode() ? 1 : 2)));
-        prevPageBtn.addEventListener('click', () => navigateToPage(currentPage - (isSinglePageMode() ? 1 : 2)));
+        nextPageBtn.addEventListener('click', () => navigateToPage(currentPage - (isSinglePageMode() ? 1 : 2)));
+        prevPageBtn.addEventListener('click', () => navigateToPage(currentPage + (isSinglePageMode() ? 1 : 2)));
 
         viewSurahBtn.addEventListener('click', displaySelectedSurah);
         surahSelect.addEventListener('change', updateVerseRangeInputs);
@@ -108,22 +121,24 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebarToggleBtn.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', toggleSidebar);
         
+        document.getElementById('theme-dropdown').addEventListener('change', (e) => setTheme(e.target.value));
+
         window.addEventListener('resize', handleResize);
     }
     
     // --- UI & View Management ---
     function switchView(viewName) {
-        mushafView.classList.toggle('active', viewName === 'mushaf');
-        mushafControls.classList.toggle('active', viewName === 'mushaf');
-        mushafViewBtn.classList.toggle('active', viewName === 'mushaf');
-
-        surahView.classList.toggle('active', viewName === 'surah');
-        surahControls.classList.toggle('active', viewName === 'surah');
-        surahViewBtn.classList.toggle('active', viewName === 'surah');
+        mainViews.forEach(v => v.classList.toggle('active', v.id === `${viewName}-view`));
+        sidebarViews.forEach(v => v.classList.toggle('active', v.id === `${viewName}-controls-sidebar`));
+        viewSwitcherBtns.forEach(b => b.classList.toggle('active', b.id === `${viewName}-view-btn`));
         
+        if (viewName === 'games') {
+            setupGamesView();
+        }
+
         if (isSinglePageMode()) toggleSidebar();
     }
-
+    
     function toggleSidebar() {
         sidebar.classList.toggle('open');
         sidebarOverlay.classList.toggle('open');
@@ -142,21 +157,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageNum = parseInt(page);
         if (isNaN(pageNum) || pageNum < 1 || pageNum > 604) return;
         
+        let targetPage = pageNum;
+        if (!isSinglePageMode() && targetPage % 2 === 0) {
+            targetPage = pageNum - 1; // Always start with the right-hand page
+        }
+        currentPage = targetPage;
+        pageInput.value = currentPage;
+
         if (isSinglePageMode()) {
-            currentPage = pageNum;
-            mushafRightPage.style.display = 'block';
             mushafLeftPage.style.display = 'none';
             renderMushafPage(mushafRightPage, currentPage);
         } else {
-            let startPage = (pageNum % 2 === 0) ? pageNum - 1 : pageNum;
-            currentPage = startPage;
-            mushafRightPage.style.display = 'block';
             mushafLeftPage.style.display = 'block';
-            renderMushafPage(mushafRightPage, startPage);
-            renderMushafPage(mushafLeftPage, startPage + 1);
+            renderMushafPage(mushafRightPage, currentPage);
+            renderMushafPage(mushafLeftPage, currentPage + 1);
         }
         
-        pageInput.value = currentPage;
         localStorage.setItem('currentPage', currentPage);
         updatePageInfoDisplay();
     }
@@ -183,10 +199,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const surahHeader = document.createElement('div');
                 surahHeader.className = 'surah-header-page';
-                surahHeader.textContent = `سورة ${surahInfo.name}`;
+                surahHeader.innerHTML = `
+                    <div>${surahInfo.revelation_place === 'Meccan' ? 'مكية' : 'مدنية'}</div>
+                    <div>${surahInfo.name}</div>
+                    <div>آياتها ${surahInfo.ayahs}</div>
+                `;
                 pageElement.appendChild(surahHeader);
 
-                if (currentSurahId !== 1 && verse.ayah === 1 && !(currentSurahId === 9 && verse.ayah === 1)) {
+                if (currentSurahId !== 1 && currentSurahId !== 9) {
                      const bismillah = document.createElement('div');
                      bismillah.className = 'bismillah-page';
                      bismillah.textContent = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
@@ -200,18 +220,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const ayahNumberSpan = document.createElement('span');
             ayahNumberSpan.className = 'ayah-number';
             ayahNumberSpan.textContent = ` ﴿${verse.ayah}﴾ `;
+
             pageElement.appendChild(ayahSpan);
             pageElement.appendChild(ayahNumberSpan);
         });
     }
-
+    
     function updatePageInfoDisplay() {
         const surahOnRight = getSurahNameFromPage(currentPage);
         let infoText = `صفحة ${currentPage} - ${surahOnRight}`;
         
         if (!isSinglePageMode() && currentPage < 604) {
              const surahOnLeft = getSurahNameFromPage(currentPage + 1);
-             infoText = `صفحة ${currentPage} (${surahOnRight}) - صفحة ${currentPage + 1} (${surahOnLeft})`;
+             infoText = `ص ${currentPage + 1} - ${surahOnLeft} | ${surahOnRight} - ص ${currentPage}`;
         }
         pageInfoDisplay.textContent = infoText;
     }
@@ -235,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
             link.onclick = (e) => {
                 e.preventDefault();
                 if(pageInfo) navigateToPage(pageInfo.page);
-                if (isSinglePageMode()) toggleSidebar();
             };
             surahIndexMushaf.appendChild(link);
         });
@@ -243,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Surah View Logic ---
     function populateSurahSelect() {
+        if (!surahSelect) return;
         surahSelect.innerHTML = '';
         surahIndex.forEach(surah => {
             const option = document.createElement('option');
@@ -276,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             surahViewContainer.innerHTML = `<p style="color: red;">الرجاء إدخال نطاق آيات صحيح.</p>`;
             return;
         }
-
+        switchView('surah');
         surahViewTitle.textContent = `سورة ${surah.name} (الآيات ${startVerse}-${endVerse})`;
         surahViewContainer.innerHTML = '';
         
@@ -286,9 +307,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Games Logic ---
+    function setupGamesView() {
+        gameSelectorContainer.innerHTML = `
+            <button class="game-select-btn" data-game="meaning-match">توصيل المعاني</button>
+            <button class="game-select-btn" data-game="verse-order">ترتيب الآيات</button>
+        `;
+        gameContentArea.innerHTML = '<p>اختر لعبة للبدء.</p>';
+        
+        document.querySelectorAll('.game-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.game-select-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                launchGame(e.currentTarget.dataset.game);
+            });
+        });
+    }
+
+    function launchGame(gameType) {
+        gameContentArea.innerHTML = '';
+        const surahId = parseInt(surahSelect.value);
+        const surah = surahDataCache[surahId];
+        if (!surah) {
+            gameContentArea.innerHTML = '<p>الرجاء اختيار سورة أولاً من "العرض المخصص".</p>';
+            return;
+        }
+        
+        if (gameType === 'meaning-match') {
+            setupMeaningMatchGame(surah);
+        } else if (gameType === 'verse-order') {
+            setupVerseOrderGame(surah);
+        }
+    }
+    
+    function setupMeaningMatchGame(surah) {
+        gameContentArea.innerHTML = '<h3>لعبة توصيل المعاني</h3>';
+        // ... (Add game logic from your previous 'app.js')
+    }
+    
+    function setupVerseOrderGame(surah) {
+        gameContentArea.innerHTML = '<h3>لعبة ترتيب الآيات</h3>';
+        // ... (Add game logic from your previous 'app.js')
+    }
+
     // --- Helper Functions ---
     function showLoading(show, message = 'جاري التحميل...') {
-        loadingOverlay.style.display = show ? 'flex' : 'none';
+        loadingOverlay.classList.toggle('hidden', !show);
         loadingOverlay.querySelector('p').textContent = message;
     }
 
