@@ -6,6 +6,7 @@
     --border-radius-inner: 8px;
     --shadow-light: 0 2px 8px rgba(0,0,0,0.06);
     --shadow-medium: 0 4px 16px rgba(0,0,0,0.1);
+    --transition-speed: 0.3s;
 }
 
 *, *::before, *::after {
@@ -54,7 +55,7 @@ header h1 {
     align-items: center;
     gap: 1rem;
 }
-.header-controls button, .sidebar-header-controls button {
+.header-controls button {
     background: none;
     border: none;
     cursor: pointer;
@@ -66,7 +67,7 @@ header h1 {
     justify-content: center;
     transition: background-color 0.2s;
 }
-.header-controls button:hover, .sidebar-header-controls button:hover {
+.header-controls button:hover {
     background-color: var(--bg-color);
 }
 main#explorer-view {
@@ -136,20 +137,37 @@ main#explorer-view {
     position: relative;
 }
 .content-section { display: none; padding: 1.5rem; }
-.content-section.active { display: block; animation: fadeIn 0.4s ease; }
+.content-section.active { 
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    animation: fadeIn 0.4s ease; 
+}
+#read-section {
+    padding: 0;
+}
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--secondary-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+}
 
 /* Mushaf View */
 #mushaf-container {
     display: flex;
     justify-content: center;
     gap: 1.5rem;
-    margin-bottom: 1rem;
+    padding: 1.5rem;
     flex-grow: 1;
+    overflow: hidden;
 }
 .mushaf-page {
     width: 48%;
     max-width: 550px;
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-main);
     background: var(--surface-color);
@@ -158,7 +176,6 @@ main#explorer-view {
     line-height: 2.5;
     direction: rtl;
     box-shadow: var(--shadow-medium);
-    height: calc(100vh - 200px); /* Adjust based on header/footer height */
     overflow-y: auto;
 }
 .mushaf-page .ayah {
@@ -171,8 +188,8 @@ main#explorer-view {
     background-color: var(--secondary-color-light);
 }
 .mushaf-page .ayah.playing {
-    color: var(--secondary-color);
-    font-weight: bold;
+    color: var(--primary-color);
+    background-color: var(--secondary-color-light);
 }
 .mushaf-page .ayah-number {
     color: var(--primary-color);
@@ -202,8 +219,9 @@ main#explorer-view {
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1rem;
     padding: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--surface-color);
 }
 
 #mushaf-controls button {
@@ -242,8 +260,6 @@ main#explorer-view {
 
 /* Audio Player */
 #audio-player-container {
-    position: sticky;
-    bottom: 0;
     background: var(--surface-color);
     padding: 0.8rem 1.5rem;
     border-top: 1px solid var(--border-color);
@@ -251,21 +267,23 @@ main#explorer-view {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
 }
-#audio-player { width: 100%; }
+#audio-player { width: 100%; max-width: 400px; flex-grow: 1;}
 .reciter-selection { display: flex; gap: 0.5rem; align-items: center; }
 #reciter-select {
     border-radius: var(--border-radius-inner);
     padding: 0.4rem 0.6rem;
     border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
 }
 #current-verse-display {
     text-align: center;
-    font-family: var(--font-quran);
-    font-size: 1rem;
-    font-weight: bold;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
     color: var(--text-color);
-    flex-shrink: 0;
+    flex-grow: 1;
+    min-width: 200px;
 }
 
 /* --- Sidebar Navigation --- */
@@ -315,6 +333,7 @@ main#explorer-view {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-inner);
     font-family: var(--font-body);
+    font-size: 1rem;
 }
 #search-btn {
     padding: 0.8rem 1.2rem;
@@ -344,14 +363,18 @@ main#explorer-view {
 }
 
 
-/* --- Tafsir --- */
-.tafsir-item {
+/* --- Tafsir & Surah List --- */
+.tafsir-item, #surah-list-container {
     margin-bottom: 1.5rem;
     padding: 1.5rem;
-    border-right: 5px solid var(--secondary-color);
     background-color: var(--surface-color);
-    border-radius: var(--border-radius-inner);
+    border-radius: var(--border-radius-main);
     box-shadow: var(--shadow-light);
+}
+#surah-list-container {
+     font-family: var(--font-quran);
+     line-height: 2.4;
+     font-size: 1.5rem;
 }
 .tafsir-item h4 {
     margin-top: 0;
@@ -386,7 +409,7 @@ main#explorer-view {
     width: 50px;
     height: 50px;
     font-size: 1.8rem;
-    display: none; /* Hidden by default, shown by JS */
+    display: none; /* Hidden by default */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -448,8 +471,7 @@ main#explorer-view {
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 1.5rem;
-        color: var(--primary-color);
+        padding: 0.5rem;
     }
     .header-controls {
         display: none;

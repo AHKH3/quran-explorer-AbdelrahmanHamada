@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="themes.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Noto+Naskh+Arabic:wght@400;700&family=Material+Icons&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Material+Icons&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
 </head>
 <body class="theme-classic">
@@ -29,7 +29,6 @@
                         <option value="theme-forest">غابة</option>
                     </select>
                 </div>
-                <button id="mute-btn" aria-label="كتم الصوت"><span class="material-icons">volume_up</span></button>
             </div>
             <button id="sidebar-toggle-btn" aria-label="إظهار القائمة"><span class="material-icons">menu</span></button>
         </header>
@@ -39,15 +38,12 @@
         <main id="explorer-view" class="view active">
             <aside id="sidebar">
                 <div class="sidebar-content">
-                    <div class="sidebar-header-controls">
-                        </div>
                     <h2>الفهرس</h2>
                     <div id="quran-index"></div>
                     <nav id="content-nav">
-                         <button class="nav-btn active" data-section="read"><span class="material-icons">chrome_reader_mode</span> وضع المصحف</button>
-                        <button class="nav-btn" data-section="surah-list"><span class="material-icons">list</span> عرض السورة</button>
+                         <button class="nav-btn active" data-section="read"><span class="material-icons">chrome_reader_mode</span> تصفح المصحف</button>
+                        <button class="nav-btn" data-section="surah-list"><span class="material-icons">list</span> عرض السور</button>
                         <button class="nav-btn" data-section="search"><span class="material-icons">search</span> البحث</button>
-                        <button class="nav-btn" data-section="tafsir"><span class="material-icons">lightbulb</span> التفسير</button>
                     </nav>
                 </div>
             </aside>
@@ -95,18 +91,15 @@
                     </div>
                     <div id="search-results-container"></div>
                 </section>
-                
-                <section id="tafsir-section" class="content-section">
-                    <h3 id="tafsir-title" class="section-title"></h3>
-                    <div id="tafsir-container"></div>
-                </section>
             </div>
         </main>
         <button id="scroll-top-btn" class="btn-scroll-top" aria-label="العودة للأعلى"><span class="material-icons">arrow_upward</span></button>
     </div>
 
     <script src="./quran_data/surah_index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quran-data/pages.js"></script> 
+    
+    <script src="https://cdn.jsdelivr.net/npm/quran-data/pages.js"></script>
+    
     <script src="app.js"></script>
 </body>
 </html>
