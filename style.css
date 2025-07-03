@@ -1,36 +1,42 @@
 :root {
-    --primary-color: #2c3e50; /* Midnight Blue */
-    --secondary-color: #e67e22; /* Carrot Orange */
-    --bg-color: #ecf0f1; /* Clouds White */
+    --primary-color: #2c3e50;
+    --secondary-color: #e67e22;
+    --bg-color: #ecf0f1;
     --surface-color: #ffffff;
-    --text-color: #34495e; /* Wet Asphalt */
-    --border-color: #bdc3c7; /* Silver */
+    --text-color: #34495e;
+    --border-color: #bdc3c7;
     --font-body: 'Cairo', sans-serif;
     --font-quran: 'Noto Naskh Arabic', serif;
-    --shadow-light: 0 4px 8px rgba(0,0,0,0.05);
-    --shadow-medium: 0 6px 20px rgba(0,0,0,0.1);
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 body {
     font-family: var(--font-body);
     margin: 0;
     background-color: var(--bg-color);
     color: var(--text-color);
-    line-height: 1.6;
+    line-height: 1.7;
+    font-size: 16px;
 }
 
 #loading-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--surface-color);
     z-index: 9999;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s, visibility 0.5s;
+}
+#loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 .spinner {
     width: 60px;
@@ -40,12 +46,13 @@ body {
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 #loading-overlay p {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary-color);
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 #app-container {
     display: grid;
@@ -53,25 +60,37 @@ body {
     height: 100vh;
 }
 
-/* --- Sidebar --- */
 #sidebar {
     background: var(--surface-color);
     border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     height: 100vh;
-    box-shadow: var(--shadow-medium);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.05);
     z-index: 100;
+    transition: transform 0.3s ease-in-out;
 }
-.sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
-.sidebar-header h2 { margin: 0 0 1rem 0; font-size: 1.5rem; }
-#sidebar-content { padding: 1.5rem; overflow-y: auto; flex-grow: 1; }
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+.sidebar-header h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+#sidebar-content {
+    padding: 1rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
 
 #view-switcher {
     display: flex;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid var(--border-color);
 }
 .view-btn {
     flex: 1;
@@ -79,7 +98,7 @@ body {
     border: none;
     background-color: var(--bg-color);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--text-color);
     transition: all 0.3s ease;
@@ -91,23 +110,34 @@ body {
 .view-btn.active {
     background-color: var(--primary-color);
     color: white;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
-.view-btn:not(.active):hover { background-color: #e0e0e0; }
 
 .sidebar-view { display: none; }
-.sidebar-view.active { display: block; }
+.sidebar-view.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-#sidebar label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+#sidebar label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+}
 #sidebar select, #sidebar input {
     width: 100%;
-    padding: 0.8rem;
+    padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     font-size: 1rem;
     margin-bottom: 1rem;
+    font-family: var(--font-body);
 }
-#view-surah-btn {
+#verse-range-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.action-btn {
     width: 100%;
     padding: 0.8rem;
     background-color: var(--secondary-color);
@@ -117,29 +147,34 @@ body {
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
+.action-btn:hover { background-color: #d35400; }
 
-#surah-index-mushaf a {
-    display: block;
-    padding: 8px;
+.surah-index-list { max-height: 50vh; overflow-y: auto; }
+.surah-index-list a {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
     text-decoration: none;
     color: var(--text-color);
     border-radius: 4px;
+    transition: background-color 0.2s;
+    font-size: 0.95rem;
 }
-#surah-index-mushaf a:hover, #surah-index-mushaf a.active {
-    background-color: var(--primary-color-light, #dfe6e9);
+.surah-index-list a:hover, .surah-index-list a.active {
+    background-color: #dfe6e9;
+    font-weight: 700;
 }
 
-/* --- Content Area --- */
 #content-area {
+    position: relative;
     overflow-y: auto;
     background-color: var(--bg-color);
 }
 .main-view { display: none; }
-.main-view.active { display: flex; flex-direction: column; }
+.main-view.active { display: flex; flex-direction: column; height: 100%; }
 
-/* Mushaf View */
-#mushaf-view { height: 100%; }
 #mushaf-container {
     display: flex;
     flex-grow: 1;
@@ -150,17 +185,16 @@ body {
 }
 .mushaf-page {
     width: 50%;
-    background: var(--surface-color);
-    padding: 2rem;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-light);
+    background: var(--surface-color) url('https://i.imgur.com/U4a3aBw.png'); /* Subtle texture */
+    padding: 1.5rem 2rem;
+    border: 1px solid #ddd;
+    box-shadow: var(--shadow);
     overflow-y: auto;
     font-family: var(--font-quran);
     font-size: clamp(1.4rem, 2.5vw, 1.8rem);
-    line-height: 2.6;
+    line-height: 2.7;
+    border-radius: 4px;
 }
-.ayah { display: inline; cursor: pointer; }
-.ayah:hover { color: var(--secondary-color); }
 .ayah-number {
     font-family: var(--font-body);
     color: var(--primary-color);
@@ -169,42 +203,45 @@ body {
 }
 .surah-header-page {
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1.7em;
     font-weight: bold;
     color: var(--primary-color);
-    background-color: var(--bg-color);
-    padding: 0.5rem;
+    padding: 1rem 0;
     margin: 1rem 0;
-    border-radius: 6px;
+    border-top: 4px double var(--primary-color);
+    border-bottom: 4px double var(--primary-color);
 }
-.bismillah-page { text-align: center; font-size: 1.3em; margin: 1rem 0; }
+.bismillah-page { text-align: center; font-size: 1.3em; margin: 1.5rem 0; }
 
 #mushaf-navigation {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 0.8rem 1.5rem;
     border-top: 1px solid var(--border-color);
     background: var(--surface-color);
     flex-shrink: 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
 }
 #mushaf-navigation button {
     background: none;
-    border: 2px solid var(--primary-color);
+    border: none;
     color: var(--primary-color);
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
     cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s;
 }
-#mushaf-navigation button:hover { background-color: var(--primary-color); color: white; }
-#page-info-display { text-align: center; font-weight: 600; }
+#mushaf-navigation button .material-icons { font-size: 2rem; }
+#mushaf-navigation button:hover { background-color: var(--bg-color); }
+#page-info-display { text-align: center; font-weight: 600; font-size: 0.9rem; }
 
-/* Surah View */
 #surah-view { padding: 2rem; }
 #surah-view-title { text-align: center; color: var(--primary-color); }
-#surah-view-container {
+.quran-text-container {
     background-color: var(--surface-color);
     padding: 2rem;
     border-radius: 8px;
@@ -213,26 +250,36 @@ body {
     line-height: 2.8;
 }
 
-/* Responsive (Mobile First) */
+#sidebar-toggle-btn {
+    display: none; /* Hidden on desktop */
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 200;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    box-shadow: var(--shadow-medium);
+}
+
 @media (max-width: 1024px) {
     #app-container {
         grid-template-columns: 1fr;
-        display: block; /* Fallback for older browsers */
-        position: relative; /* For sidebar positioning */
+        display: block;
+        position: relative;
     }
     #sidebar {
         position: fixed;
         right: 0;
         top: 0;
-        width: 300px;
         transform: translateX(100%);
-        transition: transform 0.3s ease-in-out;
-        border-left: none;
-        border-right: 1px solid var(--border-color);
+        border-right: none;
+        border-left: 1px solid var(--border-color);
     }
-    #sidebar.open {
-        transform: translateX(0);
-    }
+    #sidebar.open { transform: translateX(0); }
     #sidebar-overlay {
         position: fixed;
         inset: 0;
@@ -242,30 +289,9 @@ body {
     }
     #sidebar-overlay.open { display: block; }
     
-    /* Add a toggle button for the sidebar */
-    #sidebar-toggle-btn {
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        z-index: 101;
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: var(--shadow-medium);
-    }
+    #sidebar-toggle-btn { display: flex; align-items: center; justify-content: center; }
     
-    #mushaf-container { flex-direction: column; }
-    .mushaf-page { width: 100%; }
-    #mushaf-page-left:not(.single-page-mode) { display: none; }
-    #mushaf-page-right.single-page-mode {
-         width: 100%;
-    }
-    header h1 { display: none; }
-    header .header-controls { display: block; }
+    #mushaf-container { flex-direction: column; align-items: center; }
+    .mushaf-page { width: 100%; height: auto; }
+    #mushaf-page-left { display: none; }
 }

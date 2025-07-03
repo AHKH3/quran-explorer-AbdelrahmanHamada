@@ -5,21 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مستكشف القرآن التفاعلي</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="themes.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Material+Icons&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
 </head>
-<body class="theme-classic">
+<body>
 
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p>جاري تحميل بيانات القرآن الكريم...</p>
+        <p>جاري تحميل بيانات القرآن...</p>
     </div>
 
     <div id="app-container">
         <aside id="sidebar">
             <div class="sidebar-header">
-                <h2>الفهرس</h2>
+                <h2>الفهرس والتنقل</h2>
                 <div id="view-switcher">
                     <button id="mushaf-view-btn" class="view-btn active" aria-label="عرض المصحف">
                         <span class="material-icons">auto_stories</span>
@@ -34,26 +33,34 @@
             
             <div id="sidebar-content">
                 <div id="mushaf-controls-sidebar" class="sidebar-view active">
-                    <label for="page-input">انتقل إلى صفحة:</label>
-                    <input type="number" id="page-input" min="1" max="604" placeholder="رقم الصفحة...">
-                    <div id="surah-index-mushaf"></div>
+                    <label for="page-input">الانتقال إلى صفحة:</label>
+                    <input type="number" id="page-input" min="1" max="604" placeholder="1-604">
+                    <div id="surah-index-mushaf" class="surah-index-list"></div>
                 </div>
 
                 <div id="surah-controls-sidebar" class="sidebar-view">
-                    <label for="surah-select">اختر سورة:</label>
+                    <label for="surah-select">اختر السورة:</label>
                     <select id="surah-select"></select>
                     <div id="verse-range-selector">
-                        <label for="verse-start">من آية:</label>
-                        <input type="number" id="verse-start" min="1">
-                        <label for="verse-end">إلى آية:</label>
-                        <input type="number" id="verse-end" min="1">
+                        <div>
+                            <label for="verse-start">من آية:</label>
+                            <input type="number" id="verse-start" min="1">
+                        </div>
+                        <div>
+                            <label for="verse-end">إلى آية:</label>
+                            <input type="number" id="verse-end" min="1">
+                        </div>
                     </div>
-                    <button id="view-surah-btn">عرض الآيات</button>
+                    <button id="view-surah-btn" class="action-btn">عرض الآيات</button>
                 </div>
             </div>
         </aside>
 
         <main id="content-area">
+             <button id="sidebar-toggle-btn" aria-label="فتح/إغلاق القائمة">
+                <span class="material-icons">menu</span>
+            </button>
+            
             <div id="mushaf-view" class="main-view active">
                 <div id="mushaf-container">
                     <div id="mushaf-page-right" class="mushaf-page"></div>
@@ -68,13 +75,15 @@
 
             <div id="surah-view" class="main-view">
                 <h2 id="surah-view-title"></h2>
-                <div id="surah-view-container"></div>
+                <div id="surah-view-container" class="quran-text-container"></div>
             </div>
         </main>
+        
+        <div id="sidebar-overlay"></div>
     </div>
 
     <script src="./quran_data/surah_index.js"></script>
-    <script src="page_map.js"></script> 
+    <script src="page_map.js"></script>
     <script src="app.js" defer></script>
 </body>
 </html>
