@@ -306,7 +306,7 @@ main#explorer-view {
     box-shadow: var(--shadow-light);
 }
 
-/* Search */
+/* --- Search --- */
 #search-input-container {
     display: flex;
     gap: 10px;
@@ -347,6 +347,11 @@ main#explorer-view {
     padding: 0 3px;
     border-radius: 3px;
 }
+#surah-list-container {
+     font-family: var(--font-quran);
+     line-height: 2.4;
+     font-size: 1.5rem;
+}
 
 /* Animations & Responsive */
 @keyframes fadeIn {
@@ -375,7 +380,7 @@ main#explorer-view {
     width: 50px;
     height: 50px;
     font-size: 1.8rem;
-    display: none; /* Hidden by default */
+    display: none;
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -392,11 +397,6 @@ main#explorer-view {
     }
     #mushaf-container { flex-direction: column; }
     .mushaf-page { width: 95%; margin: 0 auto; height: auto; max-height: 75vh; }
-    #mushaf-controls {
-        width: 95%;
-        margin-left: auto;
-        margin-right: auto;
-    }
 }
 @media (max-width: 768px) {
     main#explorer-view {
