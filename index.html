@@ -48,7 +48,6 @@
                         <button class="nav-btn" data-section="surah-list"><span class="material-icons">list</span> عرض السورة</button>
                         <button class="nav-btn" data-section="search"><span class="material-icons">search</span> البحث</button>
                         <button class="nav-btn" data-section="tafsir"><span class="material-icons">lightbulb</span> التفسير</button>
-                        <button class="nav-btn" data-section="games"><span class="material-icons">sports_esports</span> ألعاب</button>
                     </nav>
                 </div>
             </aside>
@@ -60,14 +59,16 @@
                         <div id="mushaf-page-left" class="mushaf-page"></div>
                     </div>
                     <div id="mushaf-controls">
-                        <button id="prev-page-btn"><span class="material-icons">arrow_forward_ios</span></button>
+                        <button id="next-page-btn" aria-label="الصفحة التالية"><span class="material-icons">arrow_back_ios</span></button>
                         <div class="page-info">
-                            <span id="page-number-display"></span>
                             <span id="surah-name-display"></span>
+                            <span id="page-number-display"></span>
                         </div>
-                        <button id="next-page-btn"><span class="material-icons">arrow_back_ios</span></button>
+                        <button id="prev-page-btn" aria-label="الصفحة السابقة"><span class="material-icons">arrow_forward_ios</span></button>
                     </div>
                      <div id="audio-player-container">
+                        <div id="current-verse-display"></div>
+                        <audio id="audio-player" controls></audio>
                         <div class="reciter-selection">
                             <label for="reciter-select">اختر القارئ:</label>
                             <select id="reciter-select">
@@ -78,8 +79,6 @@
                                 <option value="ar.ahmedajamy">أحمد العجمي</option>
                             </select>
                         </div>
-                        <audio id="audio-player" controls></audio>
-                        <div id="current-verse-display"></div>
                     </div>
                 </section>
 
@@ -101,24 +100,13 @@
                     <h3 id="tafsir-title" class="section-title"></h3>
                     <div id="tafsir-container"></div>
                 </section>
-
-                <section id="games-section" class="content-section">
-                    <h3 id="games-title" class="section-title">ألعاب وتدريبات</h3>
-                     <div id="game-area">
-                        <div id="game-selector">
-                           <p>اختر سورة أولاً من الفهرس لتفعيل الألعاب.</p>
-                        </div>
-                        <div id="meaning-match-game" class="game-container"></div>
-                        <div id="verse-order-game" class="game-container"></div>
-                     </div>
-                </section>
             </div>
         </main>
-
         <button id="scroll-top-btn" class="btn-scroll-top" aria-label="العودة للأعلى"><span class="material-icons">arrow_upward</span></button>
     </div>
 
     <script src="./quran_data/surah_index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quran-data/pages.js"></script> 
     <script src="app.js"></script>
 </body>
 </html>
