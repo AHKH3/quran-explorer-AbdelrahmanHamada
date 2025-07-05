@@ -477,9 +477,15 @@ document.addEventListener('DOMContentLoaded', () => {
         title.textContent = `سورة ${surah.name} (الآيات ${start}-${end})`;
         container.innerHTML = '';
         const versesToShow = surah.verses.filter(v => v.id >= start && v.id <= end);
-        versesToShow.forEach(verse => {
-            container.innerHTML += `<span class="verse-block">${verse.text} <span class="verse-number">﴿${verse.id}﴾</span></span>`;
-        });
+        if (displayMode === 'custom') {
+            // آيات متتابعة كما في المصحف
+            container.innerHTML = versesToShow.map(verse => `${verse.text} <span class="verse-number">﴿${verse.id}﴾</span>`).join(' ');
+        } else {
+            // الوضع الافتراضي (صفحة المصحف)
+            versesToShow.forEach(verse => {
+                container.innerHTML += `<span class="verse-block">${verse.text} <span class="verse-number">﴿${verse.id}﴾</span></span>`;
+            });
+        }
     }
 
     function displayTafsir(surah, start, end) {
@@ -1211,6 +1217,70 @@ document.addEventListener('DOMContentLoaded', () => {
             hideSidebar();
         }
     });
+
+    // --- وضع العرض ---
+    let displayMode = 'page'; // 'page' أو 'custom'
+
+    // عناصر اختيار وضع العرض
+    const displayModeSelector = document.getElementById('display-mode-selector');
+    const displayModeSelectorMobile = document.getElementById('display-mode-selector-mobile');
+
+    function setDisplayMode(mode) {
+        displayMode = mode;
+        // مزامنة بين سطح المكتب والموبايل
+        if (displayModeSelector) {
+            displayModeSelector.querySelectorAll('input[type=radio]').forEach(r => r.checked = (r.value === mode));
+        }
+        if (displayModeSelectorMobile) {
+            displayModeSelectorMobile.querySelectorAll('input[type=radio]').forEach(r => r.checked = (r.value === mode));
+        }
+        updateDisplayModeUI();
+        // إغلاق القائمة الجانبية على الموبايل بعد الاختيار
+        if (window.innerWidth <= 768) {
+            hideSidebar && hideSidebar();
+        }
+    }
+
+    function updateDisplayModeUI() {
+        const surahSelect = document.getElementById('surah-select');
+        const verseStartInput = document.getElementById('verse-start');
+        const verseEndInput = document.getElementById('verse-end');
+        const pageArrows = document.getElementById('page-arrows-container');
+        if (displayMode === 'page') {
+            if (surahSelect) surahSelect.style.display = 'none';
+            if (verseStartInput) verseStartInput.style.display = 'none';
+            if (verseEndInput) verseEndInput.style.display = 'none';
+            if (pageArrows) pageArrows.style.display = '';
+            gotoPage(currentPage || 1);
+        } else {
+            if (surahSelect) surahSelect.style.display = '';
+            if (verseStartInput) verseStartInput.style.display = '';
+            if (verseEndInput) verseEndInput.style.display = '';
+            if (pageArrows) pageArrows.style.display = 'none';
+            if (surahSelect && surahSelect.value) {
+                loadAndDisplaySurah(surahSelect.value);
+            }
+        }
+    }
+
+    // إضافة مستمعي الأحداث لاختيار وضع العرض
+    if (displayModeSelector) {
+        displayModeSelector.querySelectorAll('input[type=radio]').forEach(radio => {
+            radio.addEventListener('change', e => {
+                if (e.target.checked) setDisplayMode(e.target.value);
+            });
+        });
+    }
+    if (displayModeSelectorMobile) {
+        displayModeSelectorMobile.querySelectorAll('input[type=radio]').forEach(radio => {
+            radio.addEventListener('change', e => {
+                if (e.target.checked) setDisplayMode(e.target.value);
+            });
+        });
+    }
+
+    // عند بدء التطبيق، تأكد من تفعيل الوضع الافتراضي
+    setTimeout(() => setDisplayMode('page'), 0);
 
     initializeApp();
 });
