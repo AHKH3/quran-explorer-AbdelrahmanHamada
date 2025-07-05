@@ -849,6 +849,8 @@ button.option-btn:disabled {
     opacity: 0.55;
     transition: opacity 0.2s, background 0.2s, box-shadow 0.2s;
     pointer-events: auto;
+    position: relative;
+    top: 0;
 }
 .page-arrow:hover, .page-arrow:focus {
     opacity: 0.95;
@@ -861,7 +863,7 @@ button.option-btn:disabled {
     background: rgba(255,255,255,0.8);
     border-radius: 12px;
     padding: 0.5em 1.2em;
-    margin: 0 8px;
+    margin: 0 auto 1.2em auto;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
     min-width: 60px;
     text-align: center;
@@ -869,11 +871,21 @@ button.option-btn:disabled {
 }
 
 /* صفحة المصحف */
-.quran-page {
+#quran-page-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    min-height: 80vh;
+    position: relative;
+    margin: 0 auto;
+    z-index: 10;
+}
+#quran-page-content {
     background: #fffdfa;
     border-radius: 18px;
     box-shadow: 0 6px 32px rgba(0,0,0,0.10);
-    margin: 2.5vh auto;
+    margin: 2.5vh 0;
     padding: 2.5vh 2vw 2.5vh 2vw;
     max-width: 520px;
     min-width: 0;
@@ -884,30 +896,30 @@ button.option-btn:disabled {
     align-items: stretch;
     justify-content: flex-start;
     transition: box-shadow 0.2s, background 0.2s;
+    position: relative;
 }
-@media (max-width: 700px) {
-    .quran-page {
-        max-width: 98vw;
-        min-height: 55vh;
-        padding: 2vh 2vw;
-    }
-    #page-arrows-container {
-        top: 90%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
+.quran-page {
+    width: 100%;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
 }
-
 #surah-container {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
     width: 100%;
     margin: 0 auto;
     padding: 0;
 }
-
 .verse-block {
     font-family: var(--font-quran) !important;
     font-size: 2.1rem;
@@ -915,10 +927,12 @@ button.option-btn:disabled {
     letter-spacing: 0.5px;
     direction: rtl;
     text-align: center;
-    margin: 0.7rem 0;
+    margin: 0 0.2em 0.5em 0.2em;
     background: none;
     border: none;
     box-shadow: none;
+    display: inline;
+    white-space: pre-wrap;
 }
 
 /* إخفاء الأسهم افتراضيًا على الموبايل إلا عند لمس الشاشة */
