@@ -1,6 +1,6 @@
 /* --- Core Layout & Structure --- */
 :root {
-    --font-quran: 'Noto Naskh Arabic', serif;
+    --font-quran: 'Amiri Quran', 'Noto Naskh Arabic', serif;
     --font-body: 'Cairo', sans-serif;
     --border-radius-main: 16px;
     --border-radius-inner: 10px;
@@ -934,4 +934,15 @@ button.option-btn:disabled {
     #sidebar .sidebar-header-controls {
         display: flex; /* Show sidebar controls on mobile */
     }
+}
+
+/* --- Quran Text Styles --- */
+.quran-text, .ayah {
+    font-family: var(--font-quran) !important;
+    font-size: 2.1rem;
+    line-height: 2.7rem;
+    letter-spacing: 0.5px;
+    direction: rtl;
+    text-align: center;
+    /* يمكن تعديل الحجم حسب الحاجة */
 }
