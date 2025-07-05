@@ -330,6 +330,81 @@ document.addEventListener('DOMContentLoaded', () => {
                 printContent();
             });
         }
+
+        // --- Quran Page Navigation ---
+        let currentPage = 1;
+        const TOTAL_PAGES = 604;
+        let pageMapData = window.pageMap || [];
+
+        function getPageMap() {
+            if (window.pageMap) return window.pageMap;
+            if (typeof pageMap !== 'undefined') return pageMap;
+            return [];
+        }
+
+        function displayQuranPage(pageNum) {
+            const pageMapArr = getPageMap();
+            const pageObj = pageMapArr.find(p => p.page === pageNum);
+            if (!pageObj) return;
+            // جلب كل السور المطلوبة لهذه الصفحة
+            const surahStart = pageObj.start.surah;
+            const ayahStart = pageObj.start.ayah;
+            const surahEnd = pageObj.end.surah;
+            const ayahEnd = pageObj.end.ayah;
+            // سنجمع الآيات من كل سورة مطلوبة
+            let ayatToShow = [];
+            for (let s = surahStart; s <= surahEnd; s++) {
+                const surahData = window[`surah_${s}`];
+                if (!surahData) continue;
+                let from = (s === surahStart) ? ayahStart : 1;
+                let to = (s === surahEnd) ? ayahEnd : surahData.verses.length;
+                for (let a = from; a <= to; a++) {
+                    const verseObj = surahData.verses[a-1];
+                    if (verseObj) ayatToShow.push({
+                        text: verseObj.text,
+                        surah: s,
+                        ayah: a
+                    });
+                }
+            }
+            // عرض الصفحة
+            const container = document.getElementById('surah-container');
+            container.innerHTML = `<div class="quran-page">${ayatToShow.map(v => `<span class="verse-block">${v.text} <span class="verse-number">﴿${v.ayah}﴾</span></span>`).join('')}</div>`;
+            // تحديث رقم الصفحة
+            const pageNumIndicator = document.getElementById('page-number-indicator');
+            if (pageNumIndicator) pageNumIndicator.textContent = `صفحة ${pageNum} / 604`;
+        }
+
+        function updatePageArrows() {
+            document.getElementById('prev-page-btn').disabled = (currentPage <= 1);
+            document.getElementById('next-page-btn').disabled = (currentPage >= TOTAL_PAGES);
+        }
+
+        function gotoPage(pageNum) {
+            if (pageNum < 1 || pageNum > TOTAL_PAGES) return;
+            currentPage = pageNum;
+            displayQuranPage(currentPage);
+            updatePageArrows();
+        }
+
+        // --- Event listeners for page arrows ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // تحميل pageMap إذا لم يكن موجودًا
+            if (!window.pageMap && typeof pageMap !== 'undefined') window.pageMap = pageMap;
+            // تحميل جميع سور القرآن في الذاكرة (للتنقل السريع)
+            const surahPromises = Array.from({length: 114}, (_, i) => fetch(`./quran_data/${i+1}.js`).then(r => r.text()).then(txt => {
+                const varName = `surah_${i+1}`;
+                window[varName] = new Function(txt + `; return ${varName};`)();
+            }));
+            Promise.all(surahPromises).then(() => {
+                pageMapData = getPageMap();
+                gotoPage(1);
+            });
+            // أزرار الأسهم
+            document.getElementById('prev-page-btn').onclick = () => gotoPage(currentPage - 1);
+            document.getElementById('next-page-btn').onclick = () => gotoPage(currentPage + 1);
+        });
+
     }
 
     // --- Print Functionality ---

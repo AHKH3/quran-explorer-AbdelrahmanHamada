@@ -821,119 +821,110 @@ button.option-btn:disabled {
     transform: translateY(-3px);
 }
 
-@media (max-width: 992px) {
-    main#explorer-view {
-        grid-template-columns: 240px 1fr;
+#page-arrows-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    z-index: 200;
+    pointer-events: none;
+    user-select: none;
+}
+.page-arrow {
+    background: rgba(255,255,255,0.7);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    width: 54px;
+    height: 54px;
+    margin: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #0d47a1;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.2s, background 0.2s, box-shadow 0.2s;
+    pointer-events: auto;
+}
+.page-arrow:hover, .page-arrow:focus {
+    opacity: 0.95;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(13,71,161,0.13);
+}
+#page-number-indicator {
+    font-size: 1.3rem;
+    color: #333;
+    background: rgba(255,255,255,0.8);
+    border-radius: 12px;
+    padding: 0.5em 1.2em;
+    margin: 0 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    min-width: 60px;
+    text-align: center;
+    pointer-events: auto;
+}
+
+/* صفحة المصحف */
+.quran-page {
+    background: #fffdfa;
+    border-radius: 18px;
+    box-shadow: 0 6px 32px rgba(0,0,0,0.10);
+    margin: 2.5vh auto;
+    padding: 2.5vh 2vw 2.5vh 2vw;
+    max-width: 520px;
+    min-width: 0;
+    min-height: 60vh;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    transition: box-shadow 0.2s, background 0.2s;
+}
+@media (max-width: 700px) {
+    .quran-page {
+        max-width: 98vw;
+        min-height: 55vh;
+        padding: 2vh 2vw;
+    }
+    #page-arrows-container {
+        top: 90%;
+        left: 50%;
+        transform: translate(-50%, -50%);
     }
 }
 
-@media (max-width: 768px) {
-    #app-container {
-        display: block;
-        height: auto;
-        min-height: 100vh;
-    }
-    header {
-        padding: 0.8rem 1rem;
-    }
-    header h1 {
-        font-size: 1.2rem;
-    }
-    .header-controls {
-        display: none; /* Hide header controls on mobile */
-    }
-    main#explorer-view {
-        display: block;
-    }
-    #sidebar {
-        position: fixed;
-        top: 0;
-        right: 0;
-        height: 100%;
-        width: 280px;
-        z-index: 1001;
-        transform: translateX(100%);
-        box-shadow: -4px 0 15px rgba(0,0,0,0.1);
-        border-right: none;
-    }
-    #sidebar.sidebar-open {
-        transform: translateX(0);
-    }
-    #sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.4);
-        z-index: 1000;
-        display: none;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    #sidebar-overlay.active {
-        display: block;
-        opacity: 1;
-    }
-    #sidebar-toggle-btn {
-        display: block;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.5rem;
-        color: var(--primary-color, #0d47a1);
-    }
-    #content-area {
-        padding: 1rem;
-    }
-    .section-title {
-        font-size: 1.8rem;
-    }
-    #surah-container {
-        font-size: 1.6rem;
-        line-height: 2.4;
-        padding: 1rem;
-    }
-    #theme-selector-mobile {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
+#surah-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
 
-    #theme-selector-mobile label {
-        font-size: 0.9rem;
-        color: var(--text-color);
-        font-weight: 600;
-    }
+.verse-block {
+    font-family: var(--font-quran) !important;
+    font-size: 2.1rem;
+    line-height: 2.7rem;
+    letter-spacing: 0.5px;
+    direction: rtl;
+    text-align: center;
+    margin: 0.7rem 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
 
-    #theme-dropdown-mobile {
-        padding: 0.5rem 1rem;
-        width: auto;
-        min-width: 150px;
-        font-weight: 600;
-    }
-
-    #mute-btn-mobile {
-        background: transparent;
-        border: none;
-        color: var(--primary-color, #0d47a1);
-        cursor: pointer;
-        padding: 0.8rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        align-self: flex-start; /* Align to start of flex container */
-        margin-top: 0.5rem;
-    }
-
-    #mute-btn-mobile:hover {
-        background-color: var(--border-color, #e9ecef);
-    }
-    #sidebar .sidebar-header-controls {
-        display: flex; /* Show sidebar controls on mobile */
-    }
+/* إخفاء الأسهم افتراضيًا على الموبايل إلا عند لمس الشاشة */
+@media (hover: none) and (pointer: coarse) {
+    #page-arrows-container { opacity: 0.2; }
+    #page-arrows-container:active, #page-arrows-container:focus-within { opacity: 1; }
 }
 
 /* --- Quran Text Styles --- */
