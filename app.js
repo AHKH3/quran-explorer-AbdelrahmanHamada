@@ -351,7 +351,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const ayahStart = pageObj.start.ayah;
             const surahEnd = pageObj.end.surah;
             const ayahEnd = pageObj.end.ayah;
-            // سنجمع الآيات من كل سورة مطلوبة
             let ayatToShow = [];
             for (let s = surahStart; s <= surahEnd; s++) {
                 const surahData = window[`surah_${s}`];
@@ -369,10 +368,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // عرض الصفحة
             const container = document.getElementById('surah-container');
-            container.innerHTML = `<div class="quran-page">${ayatToShow.map(v => `<span class="verse-block">${v.text} <span class="verse-number">﴿${v.ayah}﴾</span></span>`).join('')}</div>`;
+            container.innerHTML = `<div class="quran-page">${ayatToShow.map(v => `<span class=\"verse-block\">${v.text} <span class=\"verse-number\">﴿${v.ayah}﴾</span></span>`).join('')}</div>`;
             // تحديث رقم الصفحة
             const pageNumIndicator = document.getElementById('page-number-indicator');
             if (pageNumIndicator) pageNumIndicator.textContent = `صفحة ${pageNum} / 604`;
+            // إخفاء عنوان السورة
+            const readTitle = document.getElementById('read-title');
+            if (readTitle) readTitle.textContent = '';
         }
 
         function updatePageArrows() {
@@ -403,6 +405,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // أزرار الأسهم
             document.getElementById('prev-page-btn').onclick = () => gotoPage(currentPage - 1);
             document.getElementById('next-page-btn').onclick = () => gotoPage(currentPage + 1);
+            // إخفاء عناصر اختيار السورة والآيات عند عرض صفحات المصحف
+            const surahSelect = document.getElementById('surah-select');
+            const verseStartInput = document.getElementById('verse-start');
+            const verseEndInput = document.getElementById('verse-end');
+            if (surahSelect) surahSelect.style.display = 'none';
+            if (verseStartInput) verseStartInput.style.display = 'none';
+            if (verseEndInput) verseEndInput.style.display = 'none';
         });
 
     }
