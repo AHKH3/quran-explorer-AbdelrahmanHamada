@@ -848,45 +848,69 @@ button.option-btn:disabled {
     cursor: pointer;
     opacity: 0.55;
     transition: opacity 0.2s, background 0.2s, box-shadow 0.2s;
-    pointer-events: auto;
-    position: relative;
-    top: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
 }
 .page-arrow:hover, .page-arrow:focus {
     opacity: 0.95;
     background: #fff;
     box-shadow: 0 4px 16px rgba(13,71,161,0.13);
 }
+#prev-page-btn { right: -70px; left: auto; }
+#next-page-btn { left: -70px; right: auto; }
 #page-number-indicator {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #333;
     background: rgba(255,255,255,0.8);
     border-radius: 12px;
-    padding: 0.5em 1.2em;
-    margin: 0 auto 1.2em auto;
+    padding: 0.3em 1em;
+    margin: 0 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
     min-width: 60px;
     text-align: center;
-    pointer-events: auto;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+}
+@media (max-width: 700px) {
+    .quran-page {
+        max-width: 98vw;
+        min-height: 55vh;
+        padding: 2vh 2vw;
+    }
+    .page-arrow {
+        width: 40px;
+        height: 40px;
+        font-size: 2rem;
+    }
+    #prev-page-btn { right: -45px; }
+    #next-page-btn { left: -45px; }
 }
 
-/* صفحة المصحف */
-#quran-page-wrapper {
+/* إخفاء الأسهم خارج وضع صفحات المصحف */
+#page-arrows-container { display: none; }
+.quran-page-wrapper #page-arrows-container { display: flex !important; position: static; }
+
+.quran-page-wrapper {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    width: 100vw;
-    min-height: 80vh;
+    width: 100%;
+    min-height: 70vh;
     position: relative;
     margin: 0 auto;
-    z-index: 10;
 }
-#quran-page-content {
+.quran-page {
     background: #fffdfa;
     border-radius: 18px;
     box-shadow: 0 6px 32px rgba(0,0,0,0.10);
     margin: 2.5vh 0;
-    padding: 2.5vh 2vw 2.5vh 2vw;
+    padding: 2.5vh 2vw;
     max-width: 520px;
     min-width: 0;
     min-height: 60vh;
@@ -898,47 +922,28 @@ button.option-btn:disabled {
     transition: box-shadow 0.2s, background 0.2s;
     position: relative;
 }
-.quran-page {
-    width: 100%;
-    background: none;
-    border-radius: 0;
-    box-shadow: none;
-    margin: 0;
-    padding: 0;
+.quran-page-content {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-}
-#surah-container {
-    display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: center;
+    gap: 0.5em 0.7em;
     width: 100%;
-    margin: 0 auto;
-    padding: 0;
+    padding: 1.5em 0.5em;
 }
 .verse-block {
+    display: inline-block;
     font-family: var(--font-quran) !important;
     font-size: 2.1rem;
     line-height: 2.7rem;
     letter-spacing: 0.5px;
     direction: rtl;
     text-align: center;
-    margin: 0 0.2em 0.5em 0.2em;
+    margin: 0.1rem 0.2rem;
     background: none;
     border: none;
     box-shadow: none;
-    display: inline;
-    white-space: pre-wrap;
-}
-
-/* إخفاء الأسهم افتراضيًا على الموبايل إلا عند لمس الشاشة */
-@media (hover: none) and (pointer: coarse) {
-    #page-arrows-container { opacity: 0.2; }
-    #page-arrows-container:active, #page-arrows-container:focus-within { opacity: 1; }
+    white-space: pre-line;
 }
 
 /* --- Quran Text Styles --- */

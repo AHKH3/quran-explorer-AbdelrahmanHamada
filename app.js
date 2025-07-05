@@ -366,34 +366,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }
-            // عرض الصفحة كسطر واحد مع التفاف
+            // عرض الصفحة
             const container = document.getElementById('surah-container');
-            container.innerHTML = `<div class="quran-page">${ayatToShow.map(v => `<span class=\"verse-block\">${v.text} <span class=\"verse-number\">﴿${v.ayah}﴾</span></span>`).join(' ')}</div>`;
-            // تحديث رقم الصفحة
-            const pageNumIndicator = document.getElementById('page-number-indicator');
-            if (pageNumIndicator) pageNumIndicator.textContent = `صفحة ${pageNum} / 604`;
+            container.innerHTML = `<div class="quran-page-wrapper">
+                <button id="next-page-btn" class="page-arrow" aria-label="الصفحة التالية"><span class="material-icons">chevron_left</span></button>
+                <div class="quran-page"><div class="quran-page-content">${ayatToShow.map(v => `<span class=\"verse-block\">${v.text} <span class=\"verse-number\">﴿${v.ayah}﴾</span></span>`).join(' ')}</div><div id="page-number-indicator">صفحة ${pageNum} / 604</div></div>
+                <button id="prev-page-btn" class="page-arrow" aria-label="الصفحة السابقة"><span class="material-icons">chevron_right</span></button>
+            </div>`;
             // إخفاء عنوان السورة
             const readTitle = document.getElementById('read-title');
             if (readTitle) readTitle.textContent = '';
-            // إخفاء عناصر اختيار السورة والآيات
-            const surahSelect = document.getElementById('surah-select');
-            const verseStartInput = document.getElementById('verse-start');
-            const verseEndInput = document.getElementById('verse-end');
-            if (surahSelect) surahSelect.style.display = 'none';
-            if (verseStartInput) verseStartInput.style.display = 'none';
-            if (verseEndInput) verseEndInput.style.display = 'none';
+            // تفعيل الأسهم
+            document.getElementById('prev-page-btn').onclick = () => gotoPage(currentPage - 1);
+            document.getElementById('next-page-btn').onclick = () => gotoPage(currentPage + 1);
+            updatePageArrows();
         }
 
         function updatePageArrows() {
-            document.getElementById('prev-page-btn').disabled = (currentPage <= 1);
-            document.getElementById('next-page-btn').disabled = (currentPage >= TOTAL_PAGES);
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+            if (nextBtn) nextBtn.disabled = (currentPage >= TOTAL_PAGES);
         }
 
         function gotoPage(pageNum) {
             if (pageNum < 1 || pageNum > TOTAL_PAGES) return;
             currentPage = pageNum;
             displayQuranPage(currentPage);
-            updatePageArrows();
         }
 
         // --- Event listeners for page arrows ---
@@ -409,9 +408,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 pageMapData = getPageMap();
                 gotoPage(1);
             });
-            // أزرار الأسهم
-            document.getElementById('prev-page-btn').onclick = () => gotoPage(currentPage - 1);
-            document.getElementById('next-page-btn').onclick = () => gotoPage(currentPage + 1);
+            // إخفاء عناصر اختيار السورة والآيات عند عرض صفحات المصحف
+            const surahSelect = document.getElementById('surah-select');
+            const verseStartInput = document.getElementById('verse-start');
+            const verseEndInput = document.getElementById('verse-end');
+            if (surahSelect) surahSelect.style.display = 'none';
+            if (verseStartInput) verseStartInput.style.display = 'none';
+            if (verseEndInput) verseEndInput.style.display = 'none';
         });
 
     }
