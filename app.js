@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const muteBtn = document.getElementById('mute-btn');
     const muteBtnMobile = document.getElementById('mute-btn-mobile');
     const loadingIndicator = document.getElementById('loading-indicator');
+    // وضع العرض
+    const displayModeDropdown = document.getElementById('display-mode-dropdown');
 
     // Theme handling
     let lastSelectedTheme = localStorage.getItem('selectedTheme') || 'theme-classic';
@@ -285,6 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
             muteBtnMobile.addEventListener('click', toggleMute);
         }
 
+        // Display Mode
+        if (displayModeDropdown) {
+            displayModeDropdown.addEventListener('change', (e) => {
+                updateDisplayMode(e.target.value);
+            });
+        }
+
         // Content Navigation
         contentNavButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -477,15 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
         title.textContent = `سورة ${surah.name} (الآيات ${start}-${end})`;
         container.innerHTML = '';
         const versesToShow = surah.verses.filter(v => v.id >= start && v.id <= end);
-        if (displayMode === 'custom') {
-            // آيات متتابعة كما في المصحف
-            container.innerHTML = versesToShow.map(verse => `${verse.text} <span class="verse-number">﴿${verse.id}﴾</span>`).join(' ');
-        } else {
-            // الوضع الافتراضي (صفحة المصحف)
-            versesToShow.forEach(verse => {
-                container.innerHTML += `<span class="verse-block">${verse.text} <span class="verse-number">﴿${verse.id}﴾</span></span>`;
-            });
-        }
+        // عرض الآيات متتابعة في سطر واحد مع أرقامها
+        container.innerHTML = `<div class="quran-text">${versesToShow.map(verse => `${verse.text} <span class='verse-number'>﴿${verse.id}﴾</span>`).join(' ')}</div>`;
     }
 
     function displayTafsir(surah, start, end) {
@@ -1219,68 +1221,438 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- وضع العرض ---
-    let displayMode = 'page'; // 'page' أو 'custom'
+    let displayMode = localStorage.getItem('displayMode') || 'mushaf';
+    if (displayModeDropdown) displayModeDropdown.value = displayMode;
 
-    // عناصر اختيار وضع العرض
-    const displayModeSelector = document.getElementById('display-mode-selector');
-    const displayModeSelectorMobile = document.getElementById('display-mode-selector-mobile');
-
-    function setDisplayMode(mode) {
+    function updateDisplayMode(mode) {
         displayMode = mode;
-        // مزامنة بين سطح المكتب والموبايل
-        if (displayModeSelector) {
-            displayModeSelector.querySelectorAll('input[type=radio]').forEach(r => r.checked = (r.value === mode));
-        }
-        if (displayModeSelectorMobile) {
-            displayModeSelectorMobile.querySelectorAll('input[type=radio]').forEach(r => r.checked = (r.value === mode));
-        }
-        updateDisplayModeUI();
-        // إغلاق القائمة الجانبية على الموبايل بعد الاختيار
-        if (window.innerWidth <= 768) {
-            hideSidebar && hideSidebar();
-        }
-    }
-
-    function updateDisplayModeUI() {
-        const surahSelect = document.getElementById('surah-select');
-        const verseStartInput = document.getElementById('verse-start');
-        const verseEndInput = document.getElementById('verse-end');
-        const pageArrows = document.getElementById('page-arrows-container');
-        if (displayMode === 'page') {
+        localStorage.setItem('displayMode', mode);
+        if (displayModeDropdown) displayModeDropdown.value = mode;
+        if (mode === 'mushaf') {
+            // إخفاء عناصر اختيار السورة/الآيات
             if (surahSelect) surahSelect.style.display = 'none';
             if (verseStartInput) verseStartInput.style.display = 'none';
             if (verseEndInput) verseEndInput.style.display = 'none';
-            if (pageArrows) pageArrows.style.display = '';
-            gotoPage(currentPage || 1);
-        } else {
-            if (surahSelect) surahSelect.style.display = '';
-            if (verseStartInput) verseStartInput.style.display = '';
-            if (verseEndInput) verseEndInput.style.display = '';
-            if (pageArrows) pageArrows.style.display = 'none';
+            // عرض صفحة المصحف
+            document.getElementById('page-arrows-container').style.display = 'flex';
+            // إخفاء عناصر التحكم في السورة والآية
+            document.getElementById('surah-select').style.display = 'none';
+            document.getElementById('verse-range-selector').style.display = 'none';
+            document.getElementById('content-nav').style.display = 'none';
+            // عرض صفحة المصحف
+            gotoPage(currentPage);
+        } else { // وضع "عرض مخصص"
+            // إظهار عناصر التحكم
+            document.getElementById('surah-select').style.display = 'block';
+            document.getElementById('verse-range-selector').style.display = 'grid';
+            document.getElementById('content-nav').style.display = 'flex';
+            // إخفاء أسهم التنقل بين الصفحات
+            document.getElementById('page-arrows-container').style.display = 'none';
+            // إعادة عرض السورة المحددة
             if (surahSelect && surahSelect.value) {
                 loadAndDisplaySurah(surahSelect.value);
             }
         }
     }
 
-    // إضافة مستمعي الأحداث لاختيار وضع العرض
-    if (displayModeSelector) {
-        displayModeSelector.querySelectorAll('input[type=radio]').forEach(radio => {
-            radio.addEventListener('change', e => {
-                if (e.target.checked) setDisplayMode(e.target.value);
-            });
-        });
+    // --- Initialization ---
+    async function initializeApp() {
+        populateSurahSelect(surahSelect);
+        setupEventListeners();
+        updateMuteButtonIcon(); // Set initial mute button icon
+        if (themeDropdown) {
+            themeDropdown.value = lastSelectedTheme;
+        }
+        if (themeDropdownMobile) {
+            themeDropdownMobile.value = lastSelectedTheme;
+        }
+        // Load the first surah by default
+        if (surahSelect.options.length > 0) {
+            await loadAndDisplaySurah(surahSelect.value);
+        }
+        // إظهار/إخفاء حسب وضع العرض
+        updateDisplayMode(displayMode);
     }
-    if (displayModeSelectorMobile) {
-        displayModeSelectorMobile.querySelectorAll('input[type=radio]').forEach(radio => {
-            radio.addEventListener('change', e => {
-                if (e.target.checked) setDisplayMode(e.target.value);
-            });
+
+    function populateSurahSelect(selectElement) {
+        if (typeof surahIndex === 'undefined' || !Array.isArray(surahIndex)) {
+            console.error('surahIndex is not loaded!');
+            return;
+        }
+        surahIndex.forEach((surah, index) => {
+            const option = document.createElement('option');
+            option.value = surah.id; // Use surah ID as value
+            option.textContent = `${surah.id}. ${surah.name}`;
+            selectElement.appendChild(option);
         });
     }
 
-    // عند بدء التطبيق، تأكد من تفعيل الوضع الافتراضي
-    setTimeout(() => setDisplayMode('page'), 0);
+    async function loadAndDisplaySurah(surahId) {
+        showLoading();
+        try {
+            const response = await fetch(`./quran_data/${surahId}.js`);
+            const text = await response.text();
+            // بدل محاولة استخراج JSON، ننفذ الكود ونعيد المتغير مباشرة
+            const surahVarName = `surah_${surahId}`;
+            let surahData = null;
+            try {
+                // ننفذ الكود ونعيد المتغير مباشرة
+                surahData = new Function(text + `; return ${surahVarName};`)();
+            } catch (e) {
+                console.error('Error evaluating surah JS file:', e);
+            }
+            if (surahData && typeof surahData === 'object') {
+                currentSurahData = surahData;
+                displayFullSurah(currentSurahData);
+            } else {
+                console.error('Could not parse surah data from file:', surahId);
+                currentSurahData = null;
+            }
+        } catch (error) {
+            console.error('Error loading surah data:', error);
+            currentSurahData = null;
+        } finally {
+            hideLoading();
+        }
+    }
 
-    initializeApp();
-});
+    function displayFullSurah(surah) {
+        if (!surah) return;
+        const startVerse = 1;
+        const endVerse = surah.verses.length;
+        verseStartInput.value = startVerse;
+        verseStartInput.max = endVerse;
+        verseEndInput.value = endVerse;
+        verseEndInput.max = endVerse;
+        displaySurah(surah, startVerse, endVerse);
+        displayTafsir(surah, startVerse, endVerse);
+        displayGames(surah, startVerse, endVerse);
+    }
+
+    function setTheme(theme) {
+        body.className = '';
+        body.classList.add(theme);
+        lastSelectedTheme = theme;
+        if (themeDropdown) {
+            themeDropdown.value = theme;
+        }
+        if (themeDropdownMobile) {
+            themeDropdownMobile.value = theme;
+        }
+    }
+
+    async function loadSurahRange() {
+        if (!currentSurahData) return;
+        const surah = currentSurahData;
+        const startVerse = parseInt(verseStartInput.value) || 1;
+        const endVerse = parseInt(verseEndInput.value) || surah.verses.length;
+        displaySurah(surah, startVerse, endVerse);
+        displayTafsir(surah, startVerse, endVerse);
+        displayGames(surah, startVerse, endVerse);
+    }
+
+    let verseCascadeGameLoopId = null;
+
+    function cleanupActiveGame() {
+        if (verseCascadeGameLoopId) {
+            cancelAnimationFrame(verseCascadeGameLoopId);
+            verseCascadeGameLoopId = null;
+            const cascadeArea = document.getElementById('cascade-area');
+            if (cascadeArea) cascadeArea.innerHTML = '';
+        }
+    }
+
+    // --- Event Listeners ---
+    function setupEventListeners() {
+        // Initialize audio on the first user interaction
+        document.body.addEventListener('click', initAudio, { once: true });
+        document.body.addEventListener('keydown', initAudio, { once: true });
+
+        // Surah and Verse Selection
+        surahSelect.addEventListener('change', async () => {
+            playSound('navigate');
+            cleanupActiveGame();
+            await loadAndDisplaySurah(surahSelect.value);
+        });
+        verseStartInput.addEventListener('change', () => {
+            playSound('click');
+            cleanupActiveGame();
+            loadSurahRange();
+        });
+        verseEndInput.addEventListener('change', () => {
+            playSound('click');
+            cleanupActiveGame();
+            loadSurahRange();
+        });
+
+        // Theme Dropdowns
+        if (themeDropdown) {
+            themeDropdown.addEventListener('change', (e) => {
+                setTheme(e.target.value);
+                playSound('navigate');
+            });
+        }
+        if (themeDropdownMobile) {
+            themeDropdownMobile.addEventListener('change', (e) => {
+                setTheme(e.target.value);
+                playSound('navigate');
+            });
+        }
+
+        // Mute Buttons
+        if (muteBtn) {
+            muteBtn.addEventListener('click', toggleMute);
+        }
+        if (muteBtnMobile) {
+            muteBtnMobile.addEventListener('click', toggleMute);
+        }
+
+        // Display Mode
+        if (displayModeDropdown) {
+            displayModeDropdown.addEventListener('change', (e) => {
+                updateDisplayMode(e.target.value);
+            });
+        }
+
+        // Content Navigation
+        contentNavButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                playSound('navigate');
+                cleanupActiveGame();
+                
+                contentNavButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                contentSections.forEach(s => s.classList.remove('active'));
+                
+                const sectionId = btn.dataset.section + '-section';
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+            });
+        });
+
+        // Scroll to Top Button
+        const scrollTopBtn = document.getElementById('scroll-top-btn');
+        if (scrollTopBtn) {
+            scrollTopBtn.addEventListener('click', () => {
+                document.getElementById('content-area').scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            document.getElementById('content-area').addEventListener('scroll', () => {
+                if (document.getElementById('content-area').scrollTop > 200) {
+                    scrollTopBtn.style.display = 'block';
+                } else {
+                    scrollTopBtn.style.display = 'none';
+                }
+            });
+        }
+
+        // Print Button
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                playSound('click');
+                printContent();
+            });
+        }
+
+        // --- Quran Page Navigation ---
+        let currentPage = 1;
+        const TOTAL_PAGES = 604;
+        let pageMapData = window.pageMap || [];
+
+        function getPageMap() {
+            if (window.pageMap) return window.pageMap;
+            if (typeof pageMap !== 'undefined') return pageMap;
+            return [];
+        }
+
+        function displayQuranPage(pageNum) {
+            const pageMapArr = getPageMap();
+            const pageObj = pageMapArr.find(p => p.page === pageNum);
+            if (!pageObj) return;
+            // جلب كل السور المطلوبة لهذه الصفحة
+            const surahStart = pageObj.start.surah;
+            const ayahStart = pageObj.start.ayah;
+            const surahEnd = pageObj.end.surah;
+            const ayahEnd = pageObj.end.ayah;
+            let ayatToShow = [];
+            for (let s = surahStart; s <= surahEnd; s++) {
+                const surahData = window[`surah_${s}`];
+                if (!surahData) continue;
+                let from = (s === surahStart) ? ayahStart : 1;
+                let to = (s === surahEnd) ? ayahEnd : surahData.verses.length;
+                for (let a = from; a <= to; a++) {
+                    const verseObj = surahData.verses[a-1];
+                    if (verseObj) ayatToShow.push({
+                        text: verseObj.text,
+                        surah: s,
+                        ayah: a
+                    });
+                }
+            }
+            // عرض الصفحة
+            const container = document.getElementById('surah-container');
+            container.innerHTML = `<div class="quran-page-wrapper">
+                <button id="next-page-btn" class="page-arrow" aria-label="الصفحة التالية"><span class="material-icons">chevron_left</span></button>
+                <div class="quran-page"><div class="quran-page-content">${ayatToShow.map(v => `<span class=\"verse-block\">${v.text} <span class=\"verse-number\">﴿${v.ayah}﴾</span></span>`).join(' ')}</div><div id="page-number-indicator">صفحة ${pageNum} / 604</div></div>
+                <button id="prev-page-btn" class="page-arrow" aria-label="الصفحة السابقة"><span class="material-icons">chevron_right</span></button>
+            </div>`;
+            // إخفاء عنوان السورة
+            const readTitle = document.getElementById('read-title');
+            if (readTitle) readTitle.textContent = '';
+            // تفعيل الأسهم
+            document.getElementById('prev-page-btn').onclick = () => gotoPage(currentPage - 1);
+            document.getElementById('next-page-btn').onclick = () => gotoPage(currentPage + 1);
+            updatePageArrows();
+        }
+
+        function updatePageArrows() {
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+            if (nextBtn) nextBtn.disabled = (currentPage >= TOTAL_PAGES);
+        }
+
+        function gotoPage(pageNum) {
+            if (pageNum < 1 || pageNum > TOTAL_PAGES) return;
+            currentPage = pageNum;
+            displayQuranPage(currentPage);
+        }
+
+        // --- Event listeners for page arrows ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // تحميل pageMap إذا لم يكن موجودًا
+            if (!window.pageMap && typeof pageMap !== 'undefined') window.pageMap = pageMap;
+            // تحميل جميع سور القرآن في الذاكرة (للتنقل السريع)
+            const surahPromises = Array.from({length: 114}, (_, i) => fetch(`./quran_data/${i+1}.js`).then(r => r.text()).then(txt => {
+                const varName = `surah_${i+1}`;
+                window[varName] = new Function(txt + `; return ${varName};`)();
+            }));
+            Promise.all(surahPromises).then(() => {
+                pageMapData = getPageMap();
+                gotoPage(1);
+            });
+            // إخفاء عناصر اختيار السورة والآيات عند عرض صفحات المصحف
+            const surahSelect = document.getElementById('surah-select');
+            const verseStartInput = document.getElementById('verse-start');
+            const verseEndInput = document.getElementById('verse-end');
+            if (surahSelect) surahSelect.style.display = 'none';
+            if (verseStartInput) verseStartInput.style.display = 'none';
+            if (verseEndInput) verseEndInput.style.display = 'none';
+            // إظهار/إخفاء حسب وضع العرض
+            updateDisplayMode(displayMode);
+        });
+
+    }
+
+    // --- Print Functionality ---
+    function printContent() {
+        const contentToPrint = document.getElementById('content-area').cloneNode(true);
+        // Remove elements not needed for print
+        contentToPrint.querySelector('#game-area').remove();
+        contentToPrint.querySelector('#game-selector').remove();
+        contentToPrint.querySelectorAll('.btn-reset, .btn-check, .option-btn, .game-select-btn').forEach(el => el.remove());
+
+        const printWindow = window.open('', '', 'height=800,width=800');
+        printWindow.document.write('<html><head><title>طباعة</title>');
+        // Copy styles
+        Array.from(document.querySelectorAll('link[rel="stylesheet"]')).forEach(link => {
+            printWindow.document.write('<link rel="stylesheet" href="' + link.href + '">');
+        });
+        printWindow.document.write('<style>');
+        printWindow.document.write(`
+            body { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
+            .content-section { display: block !important; }
+            #surah-container, .tafsir-item {
+                box-shadow: none;
+                border: 1px solid #eee;
+                margin-bottom: 1rem;
+                padding: 1rem;
+            }
+            .section-title { border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+            .verse-block { display: block; margin-bottom: 0.5rem; }
+            .verse-number { font-size: 0.9em; color: #666; }
+            @page { size: auto;  margin: 15mm; }
+            @media print {
+                header, #sidebar, #scroll-top-btn, #print-btn, .header-controls, .sidebar-header-controls, #game-area, #game-selector, .btn-reset, .btn-check, .option-btn, .game-select-btn {
+                    display: none !important;
+                }
+                #app-container, main#explorer-view, #content-area {
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                    overflow: visible;
+                    padding: 0;
+                    margin: 0;
+                }
+                body { margin: 0; }
+            }
+        `);
+        printWindow.document.write('</style></head><body>');
+        printWindow.document.write(contentToPrint.innerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    }
+
+    // --- Display Functions ---
+    function displaySurah(surah, start, end) {
+        const container = document.getElementById('surah-container');
+        const title = document.getElementById('read-title');
+        title.textContent = `سورة ${surah.name} (الآيات ${start}-${end})`;
+        container.innerHTML = '';
+        const versesToShow = surah.verses.filter(v => v.id >= start && v.id <= end);
+        // عرض الآيات متتابعة في سطر واحد مع أرقامها
+        container.innerHTML = `<div class="quran-text">${versesToShow.map(verse => `${verse.text} <span class='verse-number'>﴿${verse.id}﴾</span>`).join(' ')}</div>`;
+    }
+
+    function displayTafsir(surah, start, end) {
+        const container = document.getElementById('tafsir-container');
+        const title = document.getElementById('tafsir-title');
+        title.textContent = `تفسير سورة ${surah.name} (الآيات ${start}-${end})`;
+        container.innerHTML = '';
+        if (!surah.tafsir || surah.tafsir.length === 0) {
+            container.innerHTML = '<p>لا يتوفر تفسير لهذه السورة حاليًا.</p>';
+            return;
+        }
+        const tafsirToShow = surah.tafsir.filter(t => {
+            const verseRange = t.verses.split('-').map(Number);
+            const startRange = verseRange[0];
+            const endRange = verseRange[1] || startRange;
+            return Math.max(start, startRange) <= Math.min(end, endRange);
+        });
+        if (tafsirToShow.length === 0) {
+            container.innerHTML = '<p>لا يتوفر تفسير للآيات المحددة حاليًا.</p>';
+            return;
+        }
+        tafsirToShow.forEach(item => {
+            const tafsirItem = document.createElement('div');
+            tafsirItem.className = 'tafsir-item';
+            tafsirItem.innerHTML = `<h4>الآيات (${item.verses})</h4><p>${item.explanation}</p>`;
+            container.appendChild(tafsirItem);
+        });
+    }
+
+    // --- Game Logic ---
+    let gameScores = {
+        'meaning-match': 0,
+        'wheel': 0,
+        'verse-order': 0
+    };
+    let lastWheelQuestionIndex = -1; // To prevent repeating the same question twice in a row
+    function updateScore(game, delta) {
+        gameScores[game] += delta;
+        const el = document.getElementById(`${game}-score`);
+        if (el) el.textContent = `نتيجتك: ${gameScores[game]}`;
+    }
+
+    function setupMeaningMatchGame(surah, start, end) {
+        const container = document.getElementById('meaning-match-game');
+        if (!container) return;
+        container.innerHTML = '<p>اسحب الكلمة من اليمين وضعها على معناها الصحيح في اليسار.</p><div id="meaning-game-area"><div id="words-container"></div><div id="meanings-container"></div></div><button id="reset-game-btn" class="btn-reset"><span class="material-icons">refresh</span> إعادة اللعبة</button><div id="meaning-game-feedback"></div><div id="meaning-match-score"></div>';
